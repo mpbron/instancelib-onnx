@@ -31,3 +31,16 @@ with open("output/test-model.onnx", "wb") as f:
 
 # %% 
 read_model = OnnxClassifier("output/test-model.onnx", IdentityEncoder.from_list([0,1,2]))
+
+# %%
+sess = rt.InferenceSession("output/test-model.onnx")
+
+input_name = sess.get_inputs()[0].name
+label_name = sess.get_outputs()[0].name
+
+#%%
+keys, vecs = test.bulk_get_vectors(test.key_list)
+mat = np.vstack(vecs)
+# retrieve prediction - passing in the input list (you can also pass in multiple inputs as a list of lists)
+pred_onx = sess.run([label_name], {input_name: vecs})[0]
+# %%
