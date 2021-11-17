@@ -148,7 +148,7 @@ class OnnxClassifier(AbstractClassifier[IT, KT, DT, VT, RT, LT,
         return pred_onnx
 
     def _predict_proba(self, input: "Sequence[np.ndarray[Any]]") -> np.ndarray:
-        pred_onnx: "np.ndarray[float]" = self._sess.run([self._proba_name],[{self._input_name: input}])[0]
+        pred_onnx: "np.ndarray[float]" = self._sess.run([self._proba_name],{self._input_name: input})[0]
         return pred_onnx
 
     def predict_proba_instances(self, 
