@@ -6,7 +6,7 @@ from sklearn.naive_bayes import MultinomialNB
 from skl2onnx.common.data_types import DoubleTensorType, FloatTensorType
 from instancelib.utils.func import list_unzip
 from ilonnx.inference.classifier import OnnxClassifier
-from instancelib.labels.encoder import IdentityEncoder
+from instancelib.labels.encoder import DictionaryEncoder, IdentityEncoder
 
 import instancelib as il
 import onnxruntime as rt
@@ -30,17 +30,11 @@ with open("output/test-model.onnx", "wb") as f:
     f.write(model_onnx.SerializeToString())
 
 # %% 
-read_model = OnnxClassifier("output/test-model.onnx", IdentityEncoder.from_list([0,1,2]))
+read_model = il.SkLearnVectorClassifier.build(OnnxClassifier("output/test-model.onnx"), env)
+#
+#%%
+results = read_model.predict([])
 
 # %%
-sess = rt.InferenceSession("output/test-model.onnx")
-
-input_name = sess.get_inputs()[0].name
-label_name = sess.get_outputs()[0].name
-
-#%%
-keys, vecs = test.bulk_get_vectors(test.key_list)
-mat = np.vstack(vecs)
-# retrieve prediction - passing in the input list (you can also pass in multiple inputs as a list of lists)
-pred_onx = sess.run([label_name], {input_name: vecs})[0]
+next(results)
 # %%
