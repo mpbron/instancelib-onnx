@@ -30,11 +30,10 @@ with open("output/test-model.onnx", "wb") as f:
     f.write(model_onnx.SerializeToString())
 
 # %% 
-read_model = il.SkLearnVectorClassifier.build(OnnxClassifier("output/test-model.onnx"), env)
+read_model = OnnxClassifier.build_vector("output/test-model.onnx", ["Bedrijfsnieuws", "Games", "Smartphones"])
 #
 #%%
-results = read_model.predict([])
-
+performance =  il.classifier_performance_mc(read_model, test, env.labels)
 # %%
 next(results)
 # %%

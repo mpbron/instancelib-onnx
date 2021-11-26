@@ -1,7 +1,10 @@
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 from os import PathLike
 
+import instancelib as il
+from instancelib.machinelearning.base import AbstractClassifier
+from instancelib.typehints.typevars import LT
 import numpy as np
 import onnxruntime as rt
 from sklearn.base import ClassifierMixin
@@ -104,3 +107,27 @@ class OnnxClassifier(ClassifierMixin):
                     result_matrix[i,j] = proba
             return result_matrix
         return np.zeros(shape=(0,0), dtype=np.float32)
+
+    @classmethod
+    def build_data(cls, 
+                   model_location: "PathLike[str]",
+                   classes: Optional[Sequence[LT]] = None,
+                   storage_location: "Optional[PathLike[str]]"=None, 
+                   filename: "Optional[PathLike[str]]"=None, 
+                   ints_as_str: bool = False,
+                   ) -> il.AbstractClassifier[Any, Any, Any, Any, Any, LT, np.ndarray, np.ndarray]:
+        onnx = cls(model_location)
+        il_model = il.SkLearnDataClassifier.build_from_model(onnx, classes, storage_location, filename, ints_as_str)
+        return il_model
+
+    @classmethod
+    def build_vector(cls, 
+                     model_location: "PathLike[str]",
+                     classes: Optional[Sequence[LT]] = None,
+                     storage_location: "Optional[PathLike[str]]"=None, 
+                     filename: "Optional[PathLike[str]]"=None, 
+                     ints_as_str: bool = False,
+                     ) -> il.AbstractClassifier[Any, Any, Any, Any, Any, LT, np.ndarray, np.ndarray]:
+        onnx = cls(model_location)
+        il_model = il.SkLearnVectorClassifier.build_from_model(onnx, classes, storage_location, filename, ints_as_str)
+        return il_model
