@@ -3,7 +3,6 @@ from typing import Any, Mapping, Optional, Sequence
 from os import PathLike
 
 import instancelib as il
-from instancelib.machinelearning.base import AbstractClassifier
 from instancelib.typehints.typevars import LT
 import numpy as np
 import onnxruntime as rt
