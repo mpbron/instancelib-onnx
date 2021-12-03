@@ -35,5 +35,6 @@ read_model = OnnxClassifier.build_vector("output/test-model.onnx", ["Bedrijfsnie
 #%%
 performance =  il.classifier_performance_mc(read_model, test, env.labels)
 # %%
-next(results)
+sess = read_model.innermodel.pred_decoder.onnx_session
+print(sess)
 # %%
