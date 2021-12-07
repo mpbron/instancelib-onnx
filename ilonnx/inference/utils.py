@@ -1,7 +1,10 @@
-from typing import Any, Mapping, Sequence
+from os import name
+from typing import Any, Dict, Mapping, Sequence, Union
 import numpy as np
 
 import onnxruntime as ort
+
+from ilonnx.inference.parsing import pOnnxVar
 
 def to_matrix(y: Sequence[Mapping[Any, float]]) -> np.ndarray:
     """Converts ONNX output to standard scikit-learn ``predict_proba`` 
@@ -37,9 +40,18 @@ def model_details(session: ort.InferenceSession) -> None:
     outputs = session.get_outputs()
     print("Inputs\n======")
     for inp in inputs:
-        print(f"{inp.name} :: {inp.type} ({inp.shape})")
+        translated_type = pOnnxVar.parse(inp.type)
+        print(f"{inp.name} :: {translated_type} ({inp.shape})")
     print("Outputs\n=======")
     for out in outputs:
-        print(f"{out.name} :: {out.type} ({out.shape})")
+        translated_type = pOnnxVar.parse(out.type)
+        print(f"{out.name} :: {translated_type} ({out.shape})")
     metadata = session.get_modelmeta()
+    print("")
+    print(f"Producer: {metadata.producer_name}")
+    print(f"Domain: {metadata.domain}")
+    print(f"Graph_name {metadata.graph_name}")
     print(metadata)
+
+
+

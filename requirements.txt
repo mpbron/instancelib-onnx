@@ -3,3 +3,4 @@ onnxruntime
 onnx
 onnxmltools
 skl2onnx
+parsec
