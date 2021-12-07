@@ -6,11 +6,13 @@ import enum
 import re
 
 def try_int(val: Any) -> Optional[int]:
+    if val is None:
+        return None
     if isinstance(val, int):
         return val
     try:
         coerced = int(val)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
     else:
         return coerced
@@ -39,13 +41,6 @@ class OnnxDType(str, enum.Enum):
     FLOAT = "float"
     DOUBLE = "double"
     STRING = "string"
-
-
-    @classmethod
-    def get_dtype(cls, vinfo: Any) -> OnnxValueType:
-        vtype: str = vinfo.type
-        subtype: str = re.search(r"\(([A-Za-z0-9_]+)\)", vtype).group(1)
-        return OnnxDType(subtype)
 
 class OnnxComponent(str, enum.Enum):
     INPUT_TRANSLATOR = "InputTranslator"
@@ -82,6 +77,14 @@ class OnnxMap(OnnxType):
     otype = OnnxTypeEnum.MAP
     key_type: OnnxType
     value_type: OnnxType
+
+Shape = Sequence[Optional[int]]
+
+@dataclass
+class OnnxVariable:
+    name: str
+    vartype: OnnxType
+    shape: Optional[Shape]
 
 
 

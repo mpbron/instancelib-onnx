@@ -3,6 +3,7 @@ from typing import Any, Dict, Mapping, Sequence, Union
 import numpy as np
 
 import onnxruntime as ort
+from ilonnx.inference.base import OnnxVariable, get_shape
 
 from ilonnx.inference.parsing import pOnnxVar
 
@@ -39,19 +40,20 @@ def model_details(session: ort.InferenceSession) -> None:
     inputs = session.get_inputs()
     outputs = session.get_outputs()
     print("Inputs\n======")
-    for inp in inputs:
-        translated_type = pOnnxVar.parse(inp.type)
-        print(f"{inp.name} :: {translated_type} ({inp.shape})")
+    for var in inputs:
+        ttype = pOnnxVar.parse(var.type)
+        ovar = OnnxVariable(var.name, ttype, get_shape(var))
+        print(ovar)
     print("Outputs\n=======")
-    for out in outputs:
-        translated_type = pOnnxVar.parse(out.type)
-        print(f"{out.name} :: {translated_type} ({out.shape})")
+    for var in outputs:
+        ttype = pOnnxVar.parse(var.type)
+        ovar = OnnxVariable(var.name, ttype, get_shape(var))
+        print(ovar)
     metadata = session.get_modelmeta()
     print("")
     print(f"Producer: {metadata.producer_name}")
     print(f"Domain: {metadata.domain}")
     print(f"Graph_name {metadata.graph_name}")
-    print(metadata)
 
 
 
