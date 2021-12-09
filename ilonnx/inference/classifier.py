@@ -85,7 +85,7 @@ class OnnxClassifier(ClassifierMixin):
             A probability matrix
         """
         encoded_X = self.preprocessor(X)        
-        Y = self.pred_decoder(self.session, encoded_X)
+        Y = self.proba_decoder(self.session, encoded_X)
         return Y
 
     @classmethod

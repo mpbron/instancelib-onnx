@@ -8,6 +8,8 @@ from .base import (OnnxBaseType, OnnxDType, OnnxMap, OnnxSequence, OnnxTensor,
 spaces = regex(r'\s*', re.MULTILINE)
 name = regex(r'[_a-zA-Z][_a-zA-Z0-9]*')
 
+def pBrackets(pFunc):
+    return string("(") >> pFunc << string(")")
 
 @generate
 def pOnnxType():
@@ -22,18 +24,13 @@ def pOnnxDType():
 
 
 @generate
-def pTensor():
+def pTensorType():
     yield string("tensor")
     dtype = yield pBrackets(pOnnxDType)
     return OnnxTensor(dtype)
 
-
-def pBrackets(pFunc):
-    return string("(") >> pFunc << string(")")
-
-
 @generate
-def pOnnxMapVars():
+def pOnnxMapType():
     yield string("map")
     listvars = yield pBrackets(
         separated(
@@ -43,16 +40,16 @@ def pOnnxMapVars():
 
 
 @generate
-def pOnnxSeqVars():
+def pOnnxSeqType():
     yield string("seq")
     innervar = yield pBrackets(pOnnxVar)
     return OnnxSequence(innervar)
 
 
 @generate
-def pBasicVar():
+def pBaseType():
     vartype = yield pOnnxType
     return OnnxBaseType(vartype)
 
 
-pOnnxVar = pTensor | pOnnxMapVars | pOnnxSeqVars | pBasicVar
+pOnnxVar = pTensorType | pOnnxMapType | pOnnxSeqType | pBaseType
