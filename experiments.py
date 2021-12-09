@@ -41,5 +41,5 @@ read_model = factory.build_vector_model(
 performance = il.classifier_performance_mc(read_model, test, env.labels)
 
 #%%
-performance.confusion_matrix
+read_model.predict_proba(test)
 # %%

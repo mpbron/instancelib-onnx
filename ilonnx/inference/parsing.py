@@ -12,7 +12,7 @@ def pBrackets(pFunc):
     return string("(") >> pFunc << string(")")
 
 @generate
-def pOnnxType():
+def pOnnxValueType():
     type_str = yield name
     return OnnxValueType(type_str)
 
@@ -34,7 +34,7 @@ def pOnnxMapType():
     yield string("map")
     listvars = yield pBrackets(
         separated(
-            pOnnxVar,
+            pOnnxType,
             string(","), 2, 2))
     return OnnxMap(listvars[0], listvars[1])
 
@@ -42,14 +42,14 @@ def pOnnxMapType():
 @generate
 def pOnnxSeqType():
     yield string("seq")
-    innervar = yield pBrackets(pOnnxVar)
+    innervar = yield pBrackets(pOnnxType)
     return OnnxSequence(innervar)
 
 
 @generate
 def pBaseType():
-    vartype = yield pOnnxType
+    vartype = yield pOnnxValueType
     return OnnxBaseType(vartype)
 
 
-pOnnxVar = pTensorType | pOnnxMapType | pOnnxSeqType | pBaseType
+pOnnxType = pTensorType | pOnnxMapType | pOnnxSeqType | pBaseType
