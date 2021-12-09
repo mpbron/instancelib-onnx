@@ -5,7 +5,7 @@ import numpy as np
 import onnxruntime as ort
 from ilonnx.inference.base import OnnxVariable, get_shape
 
-from ilonnx.inference.parsing import pOnnxVar
+from ilonnx.inference.parsing import pOnnxType
 
 def to_matrix(y: Sequence[Mapping[Any, float]]) -> np.ndarray:
     """Converts ONNX output to standard scikit-learn ``predict_proba`` 
@@ -41,12 +41,12 @@ def model_details(session: ort.InferenceSession) -> None:
     outputs = session.get_outputs()
     print("Inputs\n======")
     for var in inputs:
-        ttype = pOnnxVar.parse(var.type)
+        ttype = pOnnxType.parse(var.type)
         ovar = OnnxVariable(var.name, ttype, get_shape(var))
         print(ovar)
     print("Outputs\n=======")
     for var in outputs:
-        ttype = pOnnxVar.parse(var.type)
+        ttype = pOnnxType.parse(var.type)
         ovar = OnnxVariable(var.name, ttype, get_shape(var))
         print(ovar)
     metadata = session.get_modelmeta()
@@ -58,7 +58,7 @@ def model_details(session: ort.InferenceSession) -> None:
 def model_configuration(session: ort.InferenceSession) -> Dict[str, Any]:
     def process_onnx_vars(variables: Sequence[Any]) ->  Sequence[OnnxVariable]:
         def create_var(var: Any) -> OnnxVariable:
-            ttype = pOnnxVar.parse(var.type)
+            ttype = pOnnxType.parse(var.type)
             tvar = OnnxVariable(var.name, ttype, get_shape(var))
             return tvar
         parsed_vars = [create_var(var) for var in variables]
