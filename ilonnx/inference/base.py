@@ -43,13 +43,19 @@ class OnnxDType(str, enum.Enum):
     STRING = "string"
 
 class OnnxComponent(str, enum.Enum):
-    INPUT_TRANSLATOR = "InputTranslator"
-    OUTPUT_TRANSLATOR = "OutputTranslator"
-    POSTPROCESSOR = "PostProcessor"
-    ENCODER = "Encoder"
-    VARIABLE = "Variable"
-    TENSOR_VARIABLE = "TensorVariable"
-    SEQMAP_VARIABLE = "SeqMapVariable"
+    PREPROCESSOR = "Preprocessor"
+    PROBA_DECODER = "ProbaDecoder"
+    PRED_DECODER = "PredDecoder"
+    POST_PROCESSOR = "PostProcessor"
+    CLASSIFIER = "Classifier"
+
+class OnnxProbaDecoderTypes(str, enum.Enum):
+    TENSOR = "Tensor"
+    SEQMAP = "SeqMap"
+
+class PostProcessortype(str, enum.Enum):
+    IDENTITY = "Identity"
+    SIGMOID = "Sigmoid"
 
 
 @dataclass

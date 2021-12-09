@@ -55,5 +55,23 @@ def model_details(session: ort.InferenceSession) -> None:
     print(f"Domain: {metadata.domain}")
     print(f"Graph_name {metadata.graph_name}")
 
-
+def model_configuration(session: ort.InferenceSession) -> Dict[str, Any]:
+    def process_onnx_vars(variables: Sequence[Any]) ->  Sequence[OnnxVariable]:
+        def create_var(var: Any) -> OnnxVariable:
+            ttype = pOnnxVar.parse(var.type)
+            tvar = OnnxVariable(var.name, ttype, get_shape(var))
+            return tvar
+        parsed_vars = [create_var(var) for var in variables]
+        return parsed_vars
+    inputs = process_onnx_vars(session.get_inputs())
+    outputs = process_onnx_vars(session.get_outputs())
+    metadata = session.get_modelmeta()
+    configuration = {
+        "inputs": inputs,
+        "outputs": outputs,
+        "producer":  str(metadata.producer_name),
+        "domain": str(metadata.domain),
+        "graph_name": str(metadata.graph_name),
+    }
+    return configuration
 

@@ -1,27 +1,30 @@
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 from os import PathLike
 
 import instancelib as il
 from instancelib.typehints.typevars import LT
 import numpy as np
-import onnxruntime as rt
+import onnxruntime as ort
 from sklearn.base import ClassifierMixin
 
-from .translators import IdentityPreProcessor, OnnxSeqMapDecoder, OnnxTranslator, OnnxVectorClassLabelDecoder, PreProcessor
-from .utils import model_details
+from ilonnx.inference.base import OnnxVariable, get_shape
+from ilonnx.inference.parsing import pOnnxVar
+
+from .translators import FloatEncoder, IdentityPreProcessor, OnnxSeqMapDecoder, OnnxDecoder, OnnxVectorClassLabelDecoder, PreProcessor
+from .utils import model_configuration, model_details
 
 class OnnxClassifier(ClassifierMixin):
     """Adapter Class for ONNX models. 
     This class loads an ONNX model and provides an interface that conforms to the scikit-learn classifier API.
     """    
 
-    def __init__(self, 
+    def __init__(self, session: ort.InferenceSession,
                        preprocessor: PreProcessor,
-                       pred_decoder: OnnxTranslator, 
-                       proba_decoder: OnnxTranslator
+                       pred_decoder: OnnxDecoder, 
+                       proba_decoder: OnnxDecoder
                 ) -> None:
         """Initialize the model. 
         The model stored in the argument's location is loaded.
@@ -65,7 +68,7 @@ class OnnxClassifier(ClassifierMixin):
             A tensor that contains the predicted classes
         """
         encoded_X = self.preprocessor(X)
-        Y = self.pred_decoder(encoded_X)
+        Y = self.pred_decoder(self.session, encoded_X)
         return Y
 
 
@@ -84,24 +87,15 @@ class OnnxClassifier(ClassifierMixin):
             A probability matrix
         """
         encoded_X = self.preprocessor(X)        
-        Y = self.pred_decoder(encoded_X)
+        Y = self.pred_decoder(self.session, encoded_X)
         return Y
 
     @classmethod
     def build_model(cls, model_location: "PathLike[str]") -> OnnxClassifier:
-        session = rt.InferenceSession(model_location)
-        model_details(session)
-        metadata = session.get_modelmeta()
-        producer = metadata.producer_name
-        domain = metadata.domain
-        description = metadata.description
-        graph_description = metadata.graph_description
-        graph_name = metadata.graph_name
-        
-        input_field = session.get_inputs()[0].name
-        pred_field = session.get_outputs()[0].name
-        proba_field = session.get_outputs()[1].name
-        
+        session = ort.InferenceSession()
+        configuration = model_configuration(session)
+        print(configuration)
+        preprocessor = FloatEncoder()
         pred_decoder = OnnxVectorClassLabelDecoder(session, input_field, pred_field)
         proba_decoder = OnnxSeqMapDecoder(session, input_field, proba_field)
 
