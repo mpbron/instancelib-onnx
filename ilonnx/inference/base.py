@@ -58,27 +58,27 @@ class PostProcessortype(str, enum.Enum):
     SIGMOID = "Sigmoid"
 
 
-@dataclass
+@dataclass(eq=True, order=True, frozen=True)
 class OnnxType:
     otype = OnnxTypeEnum.TYPE
     
 
-@dataclass
+@dataclass(eq=True, order=True, frozen=True)
 class OnnxBaseType(OnnxType):
     otype = OnnxTypeEnum.BASE_TYPE
     var_type: OnnxValueType
 
-@dataclass
+@dataclass(eq=True, order=True, frozen=True)
 class OnnxTensor(OnnxType):
     otype = OnnxTypeEnum.TENSOR
     dtype: OnnxDType
 
-@dataclass
+@dataclass(eq=True, order=True, frozen=True)
 class OnnxSequence(OnnxType):
     otype = OnnxTypeEnum.SEQUENCE
     item_type: OnnxType
 
-@dataclass
+@dataclass(eq=True, order=True, frozen=True)
 class OnnxMap(OnnxType):
     otype = OnnxTypeEnum.MAP
     key_type: OnnxType
@@ -86,7 +86,7 @@ class OnnxMap(OnnxType):
 
 Shape = Sequence[Optional[int]]
 
-@dataclass
+@dataclass(eq=True, order=True, frozen=True)
 class OnnxVariable:
     name: str
     vartype: OnnxType

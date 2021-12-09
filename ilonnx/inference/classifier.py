@@ -10,10 +10,7 @@ import numpy as np
 import onnxruntime as ort
 from sklearn.base import ClassifierMixin
 
-from ilonnx.inference.base import OnnxVariable, get_shape
-from ilonnx.inference.parsing import pOnnxVar
-
-from .translators import FloatEncoder, IdentityPreProcessor, OnnxSeqMapDecoder, OnnxDecoder, OnnxVectorClassLabelDecoder, PreProcessor
+from .translators import IdentityPreProcessor, OnnxSeqMapDecoder, OnnxDecoder, OnnxVectorClassLabelDecoder, PreProcessor
 from .utils import model_configuration, model_details
 
 class OnnxClassifier(ClassifierMixin):
@@ -37,6 +34,7 @@ class OnnxClassifier(ClassifierMixin):
         self.preprocessor = preprocessor
         self.pred_decoder = pred_decoder
         self.proba_decoder = proba_decoder
+        self.session = session
         
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
@@ -91,17 +89,6 @@ class OnnxClassifier(ClassifierMixin):
         return Y
 
     @classmethod
-    def build_model(cls, model_location: "PathLike[str]") -> OnnxClassifier:
-        session = ort.InferenceSession()
-        configuration = model_configuration(session)
-        print(configuration)
-        preprocessor = FloatEncoder()
-        pred_decoder = OnnxVectorClassLabelDecoder(session, input_field, pred_field)
-        proba_decoder = OnnxSeqMapDecoder(session, input_field, proba_field)
-
-        return cls(IdentityPreProcessor(),pred_decoder, proba_decoder)
-        
-    @classmethod
     def build_data(cls, 
                    model_location: "PathLike[str]",
                    classes: Optional[Sequence[LT]] = None,
@@ -124,25 +111,3 @@ class OnnxClassifier(ClassifierMixin):
         onnx = cls.build_model(model_location)
         il_model = il.SkLearnVectorClassifier.build_from_model(onnx, classes, storage_location, filename, ints_as_str)
         return il_model
-
-
-
-class OnnxBuilder():
-        
-        
-    def __init__(self, model_location: "PathLike[str]") -> None:
-        session = rt.InferenceSession(model_location)
-        model_details(session)
-        metadata = session.get_modelmeta()
-        producer = metadata.producer_name
-        domain = metadata.domain
-        description = metadata.description
-        graph_description = metadata.graph_description
-        graph_name = metadata.graph_name
-        
-        input_field = session.get_inputs()[0].name
-        pred_field = session.get_outputs()[0].name
-        proba_field = session.get_outputs()[1].name
-        pred_decoder = OnnxVectorClassLabelDecoder(session, input_field, pred_field)
-        proba_decoder = OnnxSeqMapDecoder(session, input_field, proba_field)
-        

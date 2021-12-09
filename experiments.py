@@ -11,6 +11,8 @@ from instancelib.labels.encoder import DictionaryEncoder, IdentityEncoder
 import instancelib as il
 import onnxruntime as rt
 
+from ilonnx.inference.factory import OnnxFactory
+
 #%%
 # Train and fit the model
 env = il.read_excel_dataset("datasets/testdataset.xlsx", ["fulltext"], ["label"])
@@ -30,11 +32,14 @@ with open("output/test-model.onnx", "wb") as f:
     f.write(model_onnx.SerializeToString())
 
 # %% 
-read_model = OnnxClassifier.build_vector("output/test-model.onnx", ["Bedrijfsnieuws", "Games", "Smartphones"])
-#
+factory = OnnxFactory()
+read_model = factory.build_vector_model(
+    "output/test-model.onnx", 
+    classes=["Bedrijfsnieuws", "Games", "Smartphones"])
+#%
 #%%
-performance =  il.classifier_performance_mc(read_model, test, env.labels)
-# %%
-sess = read_model.innermodel.pred_decoder.onnx_session
-print(sess)
+performance = il.classifier_performance_mc(read_model, test, env.labels)
+
+#%%
+performance.confusion_matrix
 # %%

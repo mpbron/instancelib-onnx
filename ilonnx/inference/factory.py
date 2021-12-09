@@ -1,13 +1,22 @@
 from os import PathLike
 from typing import Any, Optional, Sequence
-from ilonnx.factory.base import ObjectFactory, AbstractBuilder
-from ilonnx.inference.classifier import OnnxClassifier
-from ilonnx.inference.translators import IdentityPostProcessor, OnnxSeqMapDecoder, OnnxTensorEncoder, OnnxTensorDecoder, OnnxThresholdPredictionDecoder, OnnxVectorClassLabelDecoder, SigmoidPostProcessor
-from ilonnx.inference.utils import model_configuration
-from .base import OnnxBaseType, OnnxComponent, OnnxDType, OnnxMap, OnnxSeqMapVariable, OnnxSequence, OnnxTensor, OnnxTensorVariable, OnnxTypeEnum, OnnxValueType, OnnxType, OnnxVariable, PostProcessortype, get_dimensions, get_shape
-from .parsing import pOnnxVar
 
 import onnxruntime as ort
+from ilonnx.factory.base import AbstractBuilder, ObjectFactory
+from ilonnx.inference.classifier import OnnxClassifier
+from ilonnx.inference.translators import (IdentityPostProcessor,
+                                          OnnxSeqMapDecoder, OnnxTensorDecoder,
+                                          OnnxTensorEncoder,
+                                          OnnxThresholdPredictionDecoder,
+                                          OnnxVectorClassLabelDecoder,
+                                          SigmoidPostProcessor)
+from ilonnx.inference.utils import model_configuration
+import instancelib as il
+
+from .base import (OnnxBaseType, OnnxComponent, OnnxDType, OnnxMap,
+                   OnnxSequence, OnnxTensor, OnnxTypeEnum, OnnxValueType,
+                   OnnxVariable, PostProcessortype)
+
 SEQMAPINTFLOAT = OnnxSequence(
     OnnxMap(OnnxBaseType(OnnxValueType.INT64), OnnxTensor(OnnxDType.FLOAT)))
 
@@ -172,16 +181,35 @@ class OnnxFactory(ObjectFactory):
         # Proba post processors
         self.register_constructor((OnnxComponent.POST_PROCESSOR, 
                                    PostProcessortype.IDENTITY), IdentityPostProcessor)
-        self.register_constructor((OnnxComponent.POST_PROCEESOR,
+        self.register_constructor((OnnxComponent.POST_PROCESSOR,
                                    PostProcessortype.SIGMOID), SigmoidPostProcessor)
 
     def build_model(self,
                     model_location: PathLike["str"], 
-                    post_processing = PostProcessortype.IDENTITY) -> OnnxClassifier:
+                    post_processing = PostProcessortype.IDENTITY, 
+                    **kwargs) -> OnnxClassifier:
         session = ort.InferenceSession(model_location)
         configuration = model_configuration(session)
-        classifier = self.create(OnnxComponent.Classifier, 
+        classifier = self.create(OnnxComponent.CLASSIFIER, 
                             session=session, 
                             post_processing=post_processing,
-                            **configuration)
+                            **configuration, **kwargs)
         return classifier
+
+    def build_vector_model(self,
+                           model_location: PathLike["str"],
+                           classes : Optional[Sequence[Any]] = None,
+                           post_processing = PostProcessortype.IDENTITY, 
+                           **kwargs) -> il.AbstractClassifier:
+        onnx_model = self.build_model(model_location, post_processing, **kwargs)
+        ilmodel = il.SkLearnVectorClassifier.build_from_model(onnx_model, classes)
+        return ilmodel
+
+    def build_data_model(self,
+                         model_location: PathLike["str"],
+                         classes : Optional[Sequence[Any]] = None,
+                         post_processing = PostProcessortype.IDENTITY, 
+                         **kwargs) -> il.AbstractClassifier:
+        onnx_model = self.build_model(model_location, post_processing, **kwargs)
+        ilmodel = il.SkLearnDataClassifier.build_from_model(onnx_model, classes)
+        return ilmodel
