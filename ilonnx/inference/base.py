@@ -53,7 +53,7 @@ class OnnxProbaDecoderTypes(str, enum.Enum):
     TENSOR = "Tensor"
     SEQMAP = "SeqMap"
 
-class PostProcessortype(str, enum.Enum):
+class PostProcessorType(str, enum.Enum):
     IDENTITY = "Identity"
     SIGMOID = "Sigmoid"
 

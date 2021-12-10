@@ -140,7 +140,8 @@ class TensorProbaDecoderBuilder(AbstractBuilder):
                        model_output: OnnxVariable,
                        post_processor = PostProcessortype.IDENTITY,
                        **kwargs):
-        proba_post_processor = self._factory.create(post_processor, **kwargs)
+        build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
+        proba_post_processor = self._factory.create(build_key, **kwargs)
         return OnnxTensorDecoder(model_input, model_output, proba_post_processor)
 
 class PredThresholdDecoderBuilder(AbstractBuilder):
@@ -149,7 +150,8 @@ class PredThresholdDecoderBuilder(AbstractBuilder):
                        threshold: float = 0.5,
                        post_processor = PostProcessortype.IDENTITY,
                        **kwargs):
-        proba_post_processor = self._factory.create(post_processor, **kwargs)
+        build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
+        proba_post_processor = self._factory.create(build_key, **kwargs)
         return OnnxThresholdPredictionDecoder(model_input, 
                                               model_output, 
                                               threshold,
@@ -186,22 +188,22 @@ class OnnxFactory(ObjectFactory):
 
     def build_model(self,
                     model_location: PathLike["str"], 
-                    post_processing = PostProcessortype.IDENTITY, 
+                    post_processor = PostProcessortype.IDENTITY, 
                     **kwargs) -> OnnxClassifier:
         session = ort.InferenceSession(model_location)
         configuration = model_configuration(session)
         classifier = self.create(OnnxComponent.CLASSIFIER, 
                             session=session, 
-                            post_processing=post_processing,
+                            post_processor=post_processor,
                             **configuration, **kwargs)
         return classifier
 
     def build_vector_model(self,
                            model_location: PathLike["str"],
                            classes : Optional[Sequence[Any]] = None,
-                           post_processing = PostProcessortype.IDENTITY, 
+                           post_processor = PostProcessortype.IDENTITY, 
                            **kwargs) -> il.AbstractClassifier:
-        onnx_model = self.build_model(model_location, post_processing, **kwargs)
+        onnx_model = self.build_model(model_location, post_processor, **kwargs)
         ilmodel = il.SkLearnVectorClassifier.build_from_model(onnx_model, classes)
         return ilmodel
 
