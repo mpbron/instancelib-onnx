@@ -15,7 +15,7 @@ import instancelib as il
 
 from .base import (OnnxBaseType, OnnxComponent, OnnxDType, OnnxMap,
                    OnnxSequence, OnnxTensor, OnnxTypeEnum, OnnxValueType,
-                   OnnxVariable, PostProcessortype)
+                   OnnxVariable, PostProcessorType)
 
 SEQMAPINTFLOAT = OnnxSequence(
     OnnxMap(OnnxBaseType(OnnxValueType.INT64), OnnxTensor(OnnxDType.FLOAT)))
@@ -138,7 +138,7 @@ class ProbaDecoderBuilder(AbstractBuilder):
 class TensorProbaDecoderBuilder(AbstractBuilder):
     def __call__(self, model_input: OnnxVariable, 
                        model_output: OnnxVariable,
-                       post_processor = PostProcessortype.IDENTITY,
+                       post_processor = PostProcessorType.IDENTITY,
                        **kwargs):
         build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
         proba_post_processor = self._factory.create(build_key, **kwargs)
@@ -148,7 +148,7 @@ class PredThresholdDecoderBuilder(AbstractBuilder):
     def __call__(self, model_input: OnnxVariable, 
                        model_output: OnnxVariable,
                        threshold: float = 0.5,
-                       post_processor = PostProcessortype.IDENTITY,
+                       post_processor = PostProcessorType.IDENTITY,
                        **kwargs):
         build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
         proba_post_processor = self._factory.create(build_key, **kwargs)
@@ -182,13 +182,13 @@ class OnnxFactory(ObjectFactory):
         
         # Proba post processors
         self.register_constructor((OnnxComponent.POST_PROCESSOR, 
-                                   PostProcessortype.IDENTITY), IdentityPostProcessor)
+                                   PostProcessorType.IDENTITY), IdentityPostProcessor)
         self.register_constructor((OnnxComponent.POST_PROCESSOR,
-                                   PostProcessortype.SIGMOID), SigmoidPostProcessor)
+                                   PostProcessorType.SIGMOID), SigmoidPostProcessor)
 
     def build_model(self,
                     model_location: PathLike["str"], 
-                    post_processor = PostProcessortype.IDENTITY, 
+                    post_processor = PostProcessorType.IDENTITY, 
                     **kwargs) -> OnnxClassifier:
         session = ort.InferenceSession(model_location)
         configuration = model_configuration(session)
@@ -201,7 +201,7 @@ class OnnxFactory(ObjectFactory):
     def build_vector_model(self,
                            model_location: PathLike["str"],
                            classes : Optional[Sequence[Any]] = None,
-                           post_processor = PostProcessortype.IDENTITY, 
+                           post_processor = PostProcessorType.IDENTITY, 
                            **kwargs) -> il.AbstractClassifier:
         onnx_model = self.build_model(model_location, post_processor, **kwargs)
         ilmodel = il.SkLearnVectorClassifier.build_from_model(onnx_model, classes)
@@ -210,7 +210,7 @@ class OnnxFactory(ObjectFactory):
     def build_data_model(self,
                          model_location: PathLike["str"],
                          classes : Optional[Sequence[Any]] = None,
-                         post_processing = PostProcessortype.IDENTITY, 
+                         post_processing = PostProcessorType.IDENTITY, 
                          **kwargs) -> il.AbstractClassifier:
         onnx_model = self.build_model(model_location, post_processing, **kwargs)
         ilmodel = il.SkLearnDataClassifier.build_from_model(onnx_model, classes)
