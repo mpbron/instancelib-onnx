@@ -1,7 +1,11 @@
-from typing import Any, Mapping, Sequence
+from os import name
+from typing import Any, Dict, Mapping, Sequence, Union
 import numpy as np
 
 import onnxruntime as ort
+from ilonnx.inference.base import OnnxVariable, get_shape
+
+from ilonnx.inference.parsing import pOnnxType
 
 def to_matrix(y: Sequence[Mapping[Any, float]]) -> np.ndarray:
     """Converts ONNX output to standard scikit-learn ``predict_proba`` 
@@ -36,10 +40,38 @@ def model_details(session: ort.InferenceSession) -> None:
     inputs = session.get_inputs()
     outputs = session.get_outputs()
     print("Inputs\n======")
-    for inp in inputs:
-        print(f"{inp.name} :: {inp.type} ({inp.shape})")
+    for var in inputs:
+        ttype = pOnnxType.parse(var.type)
+        ovar = OnnxVariable(var.name, ttype, get_shape(var))
+        print(ovar)
     print("Outputs\n=======")
-    for out in outputs:
-        print(f"{out.name} :: {out.type} ({out.shape})")
+    for var in outputs:
+        ttype = pOnnxType.parse(var.type)
+        ovar = OnnxVariable(var.name, ttype, get_shape(var))
+        print(ovar)
     metadata = session.get_modelmeta()
-    print(metadata)
+    print("")
+    print(f"Producer: {metadata.producer_name}")
+    print(f"Domain: {metadata.domain}")
+    print(f"Graph_name {metadata.graph_name}")
+
+def model_configuration(session: ort.InferenceSession) -> Dict[str, Any]:
+    def process_onnx_vars(variables: Sequence[Any]) ->  Sequence[OnnxVariable]:
+        def create_var(var: Any) -> OnnxVariable:
+            ttype = pOnnxType.parse(var.type)
+            tvar = OnnxVariable(var.name, ttype, get_shape(var))
+            return tvar
+        parsed_vars = [create_var(var) for var in variables]
+        return parsed_vars
+    inputs = process_onnx_vars(session.get_inputs())
+    outputs = process_onnx_vars(session.get_outputs())
+    metadata = session.get_modelmeta()
+    configuration = {
+        "inputs": inputs,
+        "outputs": outputs,
+        "producer":  str(metadata.producer_name),
+        "domain": str(metadata.domain),
+        "graph_name": str(metadata.graph_name),
+    }
+    return configuration
+
