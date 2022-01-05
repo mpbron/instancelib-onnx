@@ -5,6 +5,7 @@ import numpy as np
 import onnxruntime as ort
 
 from ilonnx.inference.base import OnnxDType, OnnxTensor, OnnxType, OnnxVariable
+from instancelib.utils.numpy import to_bicolumn_proba
 
 from .utils import sigmoid, to_matrix
 
@@ -84,9 +85,8 @@ class OnnxTensorDecoder(OnnxDecoder):
         np.ndarray
             A tensor that contains the predicted classes
         """
-
         pred_onnx: np.ndarray = self.run_model(session, input_value)
-        pred_processed  = self.proba_post_processor(pred_onnx)
+        pred_processed = to_bicolumn_proba(self.proba_post_processor(pred_onnx))
         return pred_processed
 
 class OnnxSeqMapDecoder(OnnxDecoder):

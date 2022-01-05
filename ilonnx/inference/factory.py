@@ -1,9 +1,13 @@
 from os import PathLike
-from typing import Any, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence, Union
+from instancelib.typehints.typevars import LT
+from instancelib.utils.func import seq_or_map_to_map
 
 import onnxruntime as ort
 from ilonnx.factory.base import AbstractBuilder, ObjectFactory
 from ilonnx.inference.classifier import OnnxClassifier
+from instancelib.machinelearning.sklearn import SkLearnClassifier
+from ilonnx.inference.encoder import OnnxLabelEncoder
 from ilonnx.inference.translators import (IdentityPostProcessor,
                                           OnnxSeqMapDecoder, OnnxTensorDecoder,
                                           OnnxTensorEncoder,
@@ -198,18 +202,22 @@ class OnnxFactory(ObjectFactory):
 
     def build_vector_model(self,
                            model_location: PathLike["str"],
-                           classes : Optional[Sequence[Any]] = None,
+                           classes : Union[Sequence[LT], Mapping[int, LT]],
                            post_processing = PostProcessortype.IDENTITY, 
-                           **kwargs) -> il.AbstractClassifier:
+                           **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processing, **kwargs)
-        ilmodel = il.SkLearnVectorClassifier.build_from_model(onnx_model, classes)
+        label_mapping = seq_or_map_to_map(classes)
+        encoder = OnnxLabelEncoder.from_inv(label_mapping)
+        ilmodel = il.SkLearnVectorClassifier(onnx_model, encoder)
         return ilmodel
 
     def build_data_model(self,
                          model_location: PathLike["str"],
                          classes : Optional[Sequence[Any]] = None,
                          post_processing = PostProcessortype.IDENTITY, 
-                         **kwargs) -> il.AbstractClassifier:
+                         **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processing, **kwargs)
-        ilmodel = il.SkLearnDataClassifier.build_from_model(onnx_model, classes)
+        label_mapping = seq_or_map_to_map(classes)
+        encoder = OnnxLabelEncoder.from_inv(label_mapping)
+        ilmodel = il.SkLearnDataClassifier(onnx_model, encoder)
         return ilmodel
