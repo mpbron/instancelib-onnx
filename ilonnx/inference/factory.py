@@ -19,7 +19,7 @@ import instancelib as il
 
 from .base import (OnnxBaseType, OnnxComponent, OnnxDType, OnnxMap,
                    OnnxSequence, OnnxTensor, OnnxTypeEnum, OnnxValueType,
-                   OnnxVariable, PostProcessortype)
+                   OnnxVariable, PostProcessorType)
 
 SEQMAPINTFLOAT = OnnxSequence(
     OnnxMap(OnnxBaseType(OnnxValueType.INT64), OnnxTensor(OnnxDType.FLOAT)))
@@ -142,18 +142,20 @@ class ProbaDecoderBuilder(AbstractBuilder):
 class TensorProbaDecoderBuilder(AbstractBuilder):
     def __call__(self, model_input: OnnxVariable, 
                        model_output: OnnxVariable,
-                       post_processor = PostProcessortype.IDENTITY,
+                       post_processor = PostProcessorType.IDENTITY,
                        **kwargs):
-        proba_post_processor = self._factory.create(post_processor, **kwargs)
+        build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
+        proba_post_processor = self._factory.create(build_key, **kwargs)
         return OnnxTensorDecoder(model_input, model_output, proba_post_processor)
 
 class PredThresholdDecoderBuilder(AbstractBuilder):
     def __call__(self, model_input: OnnxVariable, 
                        model_output: OnnxVariable,
                        threshold: float = 0.5,
-                       post_processor = PostProcessortype.IDENTITY,
+                       post_processor = PostProcessorType.IDENTITY,
                        **kwargs):
-        proba_post_processor = self._factory.create(post_processor, **kwargs)
+        build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
+        proba_post_processor = self._factory.create(build_key, **kwargs)
         return OnnxThresholdPredictionDecoder(model_input, 
                                               model_output, 
                                               threshold,
@@ -184,26 +186,26 @@ class OnnxFactory(ObjectFactory):
         
         # Proba post processors
         self.register_constructor((OnnxComponent.POST_PROCESSOR, 
-                                   PostProcessortype.IDENTITY), IdentityPostProcessor)
+                                   PostProcessorType.IDENTITY), IdentityPostProcessor)
         self.register_constructor((OnnxComponent.POST_PROCESSOR,
-                                   PostProcessortype.SIGMOID), SigmoidPostProcessor)
+                                   PostProcessorType.SIGMOID), SigmoidPostProcessor)
 
     def build_model(self,
                     model_location: PathLike["str"], 
-                    post_processing = PostProcessortype.IDENTITY, 
+                    post_processor = PostProcessorType.IDENTITY, 
                     **kwargs) -> OnnxClassifier:
         session = ort.InferenceSession(model_location)
         configuration = model_configuration(session)
         classifier = self.create(OnnxComponent.CLASSIFIER, 
                             session=session, 
-                            post_processing=post_processing,
+                            post_processor=post_processor,
                             **configuration, **kwargs)
         return classifier
 
     def build_vector_model(self,
                            model_location: PathLike["str"],
                            classes : Union[Sequence[LT], Mapping[int, LT]],
-                           post_processing = PostProcessortype.IDENTITY, 
+                           post_processing = PostProcessorType.IDENTITY, 
                            **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processing, **kwargs)
         label_mapping = seq_or_map_to_map(classes)
@@ -214,7 +216,7 @@ class OnnxFactory(ObjectFactory):
     def build_data_model(self,
                          model_location: PathLike["str"],
                          classes : Optional[Sequence[Any]] = None,
-                         post_processing = PostProcessortype.IDENTITY, 
+                         post_processing = PostProcessorType.IDENTITY, 
                          **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processing, **kwargs)
         label_mapping = seq_or_map_to_map(classes)
