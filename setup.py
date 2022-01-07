@@ -26,7 +26,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setuptools.setup( # type: ignore
     name="instancelib-onnx",
-    version="0.1.0",
+    version="0.1.1",
     description="A wrapper for ONNX models that adheres to the instancelib specification",
     long_description=README,
     long_description_content_type="text/markdown",
