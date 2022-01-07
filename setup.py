@@ -27,7 +27,7 @@ README = (HERE / "README.md").read_text()
 setuptools.setup( # type: ignore
     name="instancelib-onnx",
     version="0.1.0",
-    description="A wrapper for ONNX models that adheres to instancelib",
+    description="A wrapper for ONNX models that adheres to the instancelib specification",
     long_description=README,
     long_description_content_type="text/markdown",
     author="Michiel Bron",

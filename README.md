@@ -1,5 +1,21 @@
 # instancelib-onnx
-ONNX extension for instancelib
+ONNX extension for instancelib.
+
+## Installation
+You can install this package as follows:
+
+```bash
+pip install instancelib-onnx
+```
+
+Or by cloning this repo and issuing:
+```bash
+python setup.py
+```
+
+You will need at least Python 3.8 to use this library.
+
+## Usage
 
 ```python
 import instancelib as il
