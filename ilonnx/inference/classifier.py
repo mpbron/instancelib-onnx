@@ -87,27 +87,3 @@ class OnnxClassifier(ClassifierMixin):
         encoded_X = self.preprocessor(X)        
         Y = self.proba_decoder(self.session, encoded_X)
         return Y
-
-    @classmethod
-    def build_data(cls, 
-                   model_location: "PathLike[str]",
-                   classes: Optional[Sequence[LT]] = None,
-                   storage_location: "Optional[PathLike[str]]"=None, 
-                   filename: "Optional[PathLike[str]]"=None, 
-                   ints_as_str: bool = False,
-                   ) -> il.AbstractClassifier[Any, Any, Any, Any, Any, LT, np.ndarray, np.ndarray]:
-        onnx = cls.build_model(model_location)
-        il_model = il.SkLearnDataClassifier.build_from_model(onnx, classes, storage_location, filename, ints_as_str)
-        return il_model
-
-    @classmethod
-    def build_vector(cls, 
-                     model_location: "PathLike[str]",
-                     classes: Optional[Sequence[LT]] = None,
-                     storage_location: "Optional[PathLike[str]]"=None, 
-                     filename: "Optional[PathLike[str]]"=None, 
-                     ints_as_str: bool = False,
-                     ) -> il.AbstractClassifier[Any, Any, Any, Any, Any, LT, np.ndarray, np.ndarray]:
-        onnx = cls.build_model(model_location)
-        il_model = il.SkLearnVectorClassifier.build_from_model(onnx, classes, storage_location, filename, ints_as_str)
-        return il_model
