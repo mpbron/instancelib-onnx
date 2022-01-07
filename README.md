@@ -33,6 +33,6 @@ Then you can use the normal instancelib functionality to interact with the model
 env = il.read_excel_dataset("datasets/testdataset.xlsx", ["fulltext"], ["label"])
 
 # Assess the performance like any other instancelib model
-performance = il.classifier_performance(read_data_model, env.dataset, env.labels)
+performance = il.classifier_performance(model, env.dataset, env.labels)
 performance.confusion_matrix
 ```
