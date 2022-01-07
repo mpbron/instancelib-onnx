@@ -19,7 +19,7 @@ You will need at least Python 3.8 to use this library.
 
 ```python
 import instancelib as il
-import instancelib as ilonnx
+import ilonnx
 
 # Specify the model location and the label translation 
 model = ilonnx.build_data_model("example_models/data-model.onnx", 
