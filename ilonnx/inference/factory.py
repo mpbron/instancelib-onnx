@@ -1,5 +1,5 @@
 from os import PathLike
-from typing import Any, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, Mapping, Optional, Sequence, Union
 from instancelib.typehints.typevars import LT
 from instancelib.utils.func import seq_or_map_to_map
 
@@ -216,10 +216,14 @@ class OnnxFactory(ObjectFactory):
     def build_data_model(self,
                          model_location: "PathLike[str]",
                          classes : Optional[Sequence[Any]] = None,
-                         post_processor = PostProcessorType.IDENTITY, 
+                         post_processor = PostProcessorType.IDENTITY,
+                         input_encoder: Optional[Callable[[Sequence[Any]], Any]] = None, 
                          **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processor, **kwargs)
         label_mapping = seq_or_map_to_map(classes)
         encoder = OnnxLabelEncoder.from_inv(label_mapping)
-        ilmodel = il.SkLearnDataClassifier(onnx_model, encoder)
+        if input_encoder is None:
+            ilmodel = il.SkLearnDataClassifier(onnx_model, encoder)
+        else:
+            ilmodel = il.SeparateDataEncoderClassifier(onnx_model, encoder, input_encoder=input_encoder)
         return ilmodel

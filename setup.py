@@ -42,11 +42,12 @@ setuptools.setup( # type: ignore
     packages=setuptools.find_packages(), # type: ignore
     python_requires=">=3.8",
     install_requires=[
-        "instancelib>=0.3.8.0",
+        "instancelib>=0.3.9.0",
         "onnxruntime",
         "onnx",
         "onnxmltools",
         "skl2onnx",
+        "parsec"
     ],
     extras_require={
         "doc2vec": ["gensim"],
