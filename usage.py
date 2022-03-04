@@ -68,3 +68,5 @@ performance.confusion_matrix
 #%%
 read_data_model.predict(test)
 # %%
+read_data_model.innermodel
+# %%

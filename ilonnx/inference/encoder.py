@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import FrozenSet, Generic, Sequence
 from instancelib.labels.encoder import DictionaryEncoder, MultilabelDictionaryEncoder
 from instancelib.typehints.typevars import LT
@@ -13,3 +15,9 @@ class OnnxLabelEncoder(MultilabelDictionaryEncoder[LT], Generic[LT]):
         if vector.shape[0] > 1:
             return super(MultilabelDictionaryEncoder, self).decode_vector(vector)
         return super().decode_vector(vector)
+
+    @classmethod
+    def from_empty(cls) -> OnnxLabelEncoder[LT]:
+        idxs = range(0,1000)
+        return cls.from_list(idxs)
+

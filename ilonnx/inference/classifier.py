@@ -10,8 +10,11 @@ import numpy as np
 import onnxruntime as ort
 from sklearn.base import ClassifierMixin
 
+from ilonnx.inference.base import OnnxVariable, get_shape
+
 from .translators import IdentityPreProcessor, OnnxSeqMapDecoder, OnnxDecoder, OnnxVectorClassLabelDecoder, PreProcessor
 from .utils import model_configuration, model_details
+from .parsing import pOnnxType
 
 class OnnxClassifier(ClassifierMixin):
     """Adapter Class for ONNX models. 
@@ -87,3 +90,26 @@ class OnnxClassifier(ClassifierMixin):
         encoded_X = self.preprocessor(X)        
         Y = self.proba_decoder(self.session, encoded_X)
         return Y
+
+    def __repr__(self) -> str:
+        inputs = self.session.get_inputs()
+        outputs = self.session.get_outputs()
+        parsed_inputs = [OnnxVariable(var.name, pOnnxType.parse(var.type), get_shape(var)) for var in inputs]
+        parsed_outputs =[OnnxVariable(var.name, pOnnxType.parse(var.type), get_shape(var)) for var in outputs]
+        metadata = self.session.get_modelmeta()
+        result = (f"OnnxClassifier("
+                  f"preprocessor={repr(self.preprocessor)}, "
+                  f"pred_decoder={repr(self.pred_decoder)}, "
+                  f"proba_decoder={repr(self.proba_decoder)}, "
+                  "onnx_session={"
+                  f"inputs={repr(parsed_inputs)}, "
+                  f"outputs={repr(parsed_outputs)}, "
+                  "metadata={"
+                  f"producer={metadata.producer_name}, "
+                  f"domain={metadata.domain}, "
+                  f"graph_name={metadata.graph_name}"
+                  "}})")
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()

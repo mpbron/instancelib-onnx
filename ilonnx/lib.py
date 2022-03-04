@@ -1,5 +1,5 @@
 from os import PathLike
-from typing import Any, Mapping, Sequence, Union
+from typing import Any, Mapping, Optional, Sequence, Union
 from instancelib.machinelearning.base import AbstractClassifier
 from instancelib.typehints.typevars import LT
 import numpy as np
@@ -7,7 +7,7 @@ from ilonnx.inference.base import PostProcessorType
 from ilonnx.inference.factory import OnnxFactory
 
 def build_vector_model(model_location: "PathLike[str]",
-                       classes : Union[Sequence[LT], Mapping[int, LT]],
+                       classes : Optional[Union[Sequence[LT], Mapping[int, LT]]] = None,
                        post_processor = PostProcessorType.IDENTITY,
                        factory: OnnxFactory = OnnxFactory(), 
                        **kwargs) -> AbstractClassifier[Any, Any, Any, np.ndarray, Any, LT, np.ndarray, np.ndarray]:
@@ -37,7 +37,7 @@ def build_vector_model(model_location: "PathLike[str]",
     return model
 
 def build_data_model(model_location: "PathLike[str]",
-                     classes : Union[Sequence[LT], Mapping[int, LT]],
+                     classes : Optional[Union[Sequence[LT], Mapping[int, LT]]] = None,
                      post_processor = PostProcessorType.IDENTITY,
                      factory: OnnxFactory = OnnxFactory(), 
                      **kwargs) -> AbstractClassifier[Any, Any, Any, np.ndarray, Any, LT, np.ndarray, np.ndarray]:

@@ -38,6 +38,13 @@ class ProbaPostProcessor(ABC):
     def __call__(self, input_value: np.ndarray, *args, **kwargs) -> np.ndarray:
         raise NotImplementedError
 
+    def  __repr__(self) -> str:
+        result = f"{type(self)}()"
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
 class PreProcessor(ABC):
 
     def __init__(self, *args, **kwargs) -> None:
@@ -46,6 +53,13 @@ class PreProcessor(ABC):
     @abstractmethod
     def __call__(self, input_value: Any, *args, **kwargs) -> Any:
         raise NotImplementedError
+
+    def  __repr__(self) -> str:
+        result = f"{type(self)}()"
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
 class IdentityPreProcessor(PreProcessor):
 
@@ -89,6 +103,17 @@ class OnnxTensorDecoder(OnnxDecoder):
         pred_processed = to_bicolumn_proba(self.proba_post_processor(pred_onnx))
         return pred_processed
 
+    def  __repr__(self) -> str:
+        result = ("OnnxTensorDecoder("
+                 f"model_input={repr(self.model_input)}, " 
+                 f"model_output={repr(self.model_output)}, "
+                 f"proba_post_processor={repr(self.proba_post_processor)})")
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+
 class OnnxSeqMapDecoder(OnnxDecoder):
     def __call__(self, session: ort.InferenceSession, input_value: Any, *args, **kwargs) -> np.ndarray:
         """Return the predicted class probabilities for each input
@@ -107,6 +132,15 @@ class OnnxSeqMapDecoder(OnnxDecoder):
         pred_onnx = self.run_model(session, input_value)
         prob_vec = to_matrix(pred_onnx)
         return prob_vec
+
+    def  __repr__(self) -> str:
+        result = ("OnnxSeqMapDecoder("
+                 f"model_input={repr(self.model_input)}, " 
+                 f"model_output={repr(self.model_output)})")
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     
 class OnnxVectorClassLabelDecoder(OnnxDecoder):
@@ -129,6 +163,15 @@ class OnnxVectorClassLabelDecoder(OnnxDecoder):
         pred_onnx: np.ndarray = self.run_model(session, input_value)
         return pred_onnx
 
+    def  __repr__(self) -> str:
+        result = ("OnnxVectorClassLabelDecoder("
+                 f"model_input={repr(self.model_input)}, " 
+                 f"model_output={repr(self.model_output)})")
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
 class OnnxThresholdPredictionDecoder(OnnxTensorDecoder):
     def __init__(self, 
                  model_input: OnnxVariable, 
@@ -145,6 +188,17 @@ class OnnxThresholdPredictionDecoder(OnnxTensorDecoder):
         pred_binary = proba_result >= self.threshold
         pred_int = pred_binary.astype(np.int64)
         return pred_int
+
+    def  __repr__(self) -> str:
+        result = ("OnnxThresholdPredictionDecoder("
+                 f"model_input={repr(self.model_input)}, " 
+                 f"model_output={repr(self.model_output)}, "
+                 f"threshold={repr(self.threshold)}",
+                 f"proba_post_processor={repr(self.proba_post_processor)})")
+        return result
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
 
 class OnnxTensorEncoder(PreProcessor):
@@ -163,3 +217,9 @@ class OnnxTensorEncoder(PreProcessor):
         else:
             conv_input = input_value
         return conv_input
+
+    def  __repr__(self) -> str:
+        return f"OnnxTensorEncoder(model_input={repr(self.model_input)})"
+
+    def __str__(self) -> str:
+        return self.__str__()

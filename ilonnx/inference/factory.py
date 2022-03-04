@@ -153,13 +153,16 @@ class PredThresholdDecoderBuilder(AbstractBuilder):
                        model_output: OnnxVariable,
                        threshold: float = 0.5,
                        post_processor = PostProcessorType.IDENTITY,
+                       multiclass = False,
                        **kwargs):
         build_key = (OnnxComponent.POST_PROCESSOR, post_processor)
         proba_post_processor = self._factory.create(build_key, **kwargs)
-        return OnnxThresholdPredictionDecoder(model_input, 
+        if not multiclass:
+            return OnnxThresholdPredictionDecoder(model_input, 
                                               model_output, 
                                               threshold,
                                               proba_post_processor)
+        raise NotImplementedError
 
 class OnnxFactory(ObjectFactory):
     def __init__(self) -> None:
@@ -204,24 +207,30 @@ class OnnxFactory(ObjectFactory):
 
     def build_vector_model(self,
                            model_location: "PathLike[str]",
-                           classes : Union[Sequence[LT], Mapping[int, LT]],
+                           classes : Optional[Union[Sequence[LT], Mapping[int, LT]]] = None,
                            post_processor = PostProcessorType.IDENTITY, 
                            **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processor, **kwargs)
-        label_mapping = seq_or_map_to_map(classes)
-        encoder = OnnxLabelEncoder.from_inv(label_mapping)
+        if classes is not None and classes:
+            label_mapping = seq_or_map_to_map(classes)
+            encoder = OnnxLabelEncoder.from_inv(label_mapping)
+        else:
+            encoder = OnnxLabelEncoder.from_empty()
         ilmodel = il.SkLearnVectorClassifier(onnx_model, encoder)
         return ilmodel
 
     def build_data_model(self,
                          model_location: "PathLike[str]",
-                         classes : Optional[Sequence[Any]] = None,
+                         classes : Optional[Union[Sequence[LT], Mapping[int, LT]]] = None,
                          post_processor = PostProcessorType.IDENTITY,
                          input_encoder: Optional[Callable[[Sequence[Any]], Any]] = None, 
                          **kwargs) -> SkLearnClassifier[Any, Any, Any, Any, LT]:
         onnx_model = self.build_model(model_location, post_processor, **kwargs)
-        label_mapping = seq_or_map_to_map(classes)
-        encoder = OnnxLabelEncoder.from_inv(label_mapping)
+        if classes is not None and classes:
+            label_mapping = seq_or_map_to_map(classes)
+            encoder = OnnxLabelEncoder.from_inv(label_mapping)
+        else:
+            encoder = OnnxLabelEncoder.from_empty()
         if input_encoder is None:
             ilmodel = il.SkLearnDataClassifier(onnx_model, encoder)
         else:
